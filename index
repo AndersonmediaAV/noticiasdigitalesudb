@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Anderson 70D">
+    <title>Dashboard | Modo Bestia</title>
+    
+    <!-- Tailwind CSS para diseño rápido y premium -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti JS para las celebraciones -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        :root {
+            --bg-color: #000000;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #00f2fe;
+            --accent-purple: #4facfe;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: #ffffff;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, var(--accent), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Pantalla de carga */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Acordeón de Hábitos */
+        .habit-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .habit-card.active .habit-details {
+            max-height: 200px;
+        }
+
+        /* Checkbox personalizado estilo iOS */
+        .ios-checkbox {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--glass-border);
+            border-radius: 50%;
+            outline: none;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .ios-checkbox:checked {
+            background: linear-gradient(to right, var(--accent), var(--accent-purple));
+            border-color: transparent;
+        }
+        .ios-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: black;
+            font-weight: bold;
+            font-size: 14px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* ProgressBar */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="pb-24">
+
+    <!-- Pantalla de Carga -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <h1 class="text-xl font-bold tracking-wider">ANDERSON VILLANUEVA</h1>
+        <p class="text-sm text-gray-400 mt-2">Modo Bestia Activado</p>
+    </div>
+
+    <main class="px-5 pt-12 max-w-md mx-auto">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex justify-between items-end">
+                <div>
+                    <p id="current-date" class="text-gray-400 text-sm font-semibold uppercase tracking-wider"></p>
+                    <h2 id="current-time" class="text-3xl font-bold mt-1"></h2>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-400">DÍA</p>
+                    <p class="text-3xl font-bold gradient-text" id="day-counter">--</p>
+                    <p class="text-xs text-gray-400">DE 70</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mensaje Diario -->
+        <div class="glass-card p-5 mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fas fa-bolt text-yellow-400"></i>
+                <h3 class="font-semibold text-sm">Consejo del Día</h3>
+            </div>
+            <p id="daily-message" class="text-sm text-gray-300 leading-relaxed">
+                <!-- Se llena con JS -->
+            </p>
+        </div>
+
+        <!-- Hitos (Progreso) -->
+        <div class="grid grid-cols-3 gap-3 mb-8">
+            <div class="glass-card p-3 text-center">
+                <p class="text-xs text-gray-400 mb-1">Día 21</p>
+                <p class="text-sm font-bold">Hábitos</p>
+            </div>
+            <div class="glass-card p-3 text-center">
+                <p class="text-xs text-gray-400 mb-1">Día 31</p>
+                <p class="text-sm font-bold">Cambio</p>
+            </div>
+            <div class="glass-card p-3 text-center">
+                <p class="text-xs text-gray-400 mb-1">Día 70</p>
+                <p class="text-sm font-bold">Meta</p>
+            </div>
+        </div>
+
+        <!-- Lista de Tareas (Plan Diario) -->
+        <div class="mb-4 flex justify-between items-center">
+            <h3 class="font-bold text-lg">Plan de Acción</h3>
+            <span class="text-xs bg-white/20 px-2 py-1 rounded-full" id="progress-text">0/0</span>
+        </div>
+        
+        <div id="tasks-container" class="space-y-3">
+            <!-- Las tareas se inyectan con JS -->
+        </div>
+
+        <!-- Sección de Estadísticas -->
+        <div class="mt-8 glass-card p-5">
+            <h3 class="font-bold text-lg mb-4"><i class="fas fa-fire text-orange-500 mr-2"></i>Tu Racha</h3>
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-3xl font-bold" id="streak-counter">0</p>
+                    <p class="text-xs text-gray-400">Días seguidos</p>
+                </div>
+                <div class="grid grid-cols-7 gap-1" id="heatmap">
+                    <!-- Cuadritos estilo GitHub generados por JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Botón Flotante Finalizar -->
+    <div class="fixed bottom-6 left-0 right-0 px-5 flex justify-center">
+        <button onclick="finishDay()" class="w-full max-w-md py-4 rounded-2xl font-bold text-lg shadow-[0_0_20px_rgba(0,242,254,0.3)] bg-white text-black hover:scale-105 transition-transform">
+            FINALIZAR EL DÍA
+        </button>
+    </div>
+
+    <!-- Modal de Celebración -->
+    <div id="celebration-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex-col items-center justify-center px-5 text-center">
+        <h2 class="text-4xl font-bold gradient-text mb-4">¡FELICIDADES!</h2>
+        <h3 id="modal-subtitle" class="text-xl font-semibold mb-6">Anderson Vladimir</h3>
+        <p id="modal-message" class="text-gray-300 mb-8 max-w-sm"></p>
+        <button onclick="closeModal()" class="px-8 py-3 rounded-full border border-white/30 text-white font-semibold">Continuar</button>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN Y DATOS ---
+        const START_DATE = new Date('2026-11-09T00:00:00');
+        const TOTAL_DAYS = 70;
+        
+        const dailyMessages = [
+            "Controla tu pico de cortisol matutino tomando 10 mins de sol en los ojos apenas despiertes. Eso setea tu reloj biológico.",
+            "Para hablar como el 1% (Natalie Down): Grábate hablando 2 minutos hoy y analiza tu lenguaje corporal sin volumen.",
+            "Técnica Feynman: Si no puedes explicar el tema de tu clase de hoy en palabras de niño, no lo has entendido. Repásalo.",
+            "El músculo crece descansando, no solo levantando. Asegura tus proteínas y ve a dormir a tu hora.",
+            "El éxito en la negociación comienza con escuchar el doble de lo que hablas. Aplícalo hoy."
+        ];
+
+        // Base de tareas diarias (Micrometas)
+        const dailyTasks = [
+            { id: 1, time: "05:00", title: "Despertar y Movimientos Linfáticos", desc: "Técnica Shaolin: sacudidas de cuerpo entero por 3 mins.", why: "Activa el sistema linfático y elimina toxinas." },
+            { id: 2, time: "05:15", title: "Agua (1 Litro) y Sol", desc: "Beber agua con pizca de sal. Mirar luz natural.", why: "Rehidratación post-sueño y control de cortisol." },
+            { id: 3, time: "06:00", title: "Entrenamiento de Fuerza", desc: "Rutina hipertrofia enfocada según el día.", why: "Aumento de testosterona y cambio físico." },
+            { id: 4, time: "07:30", title: "Desayuno Alto en Proteína", desc: "Comer para nutrir el músculo, sin distracciones.", why: "Recuperación muscular." },
+            { id: 5, time: "09:00", title: "Bloque de Estudio Profundo", desc: "Usar Active Recall. No releer, evaluar.", why: "Agilidad mental y retención universitaria." },
+            { id: 6, time: "11:30", title: "Pausa Activa", desc: "Levantarse, estirar, 20 sentadillas.", why: "Mejora circulación tras estar sentado." },
+            { id: 7, time: "12:00", title: "Agua (1 Litro)", desc: "Completar el segundo litro del día.", why: "Hidratación sostenida." },
+            { id: 8, time: "14:00", title: "Práctica de Inglés", desc: "Escuchar podcast/TEDx e imitar pronunciación.", why: "Fluidez y apertura de puertas globales." },
+            { id: 9, time: "16:00", title: "Habilidades de Comunicación", desc: "Analizar reel de negociación, tomar notas.", why: "Aprender a vender y conectar." },
+            { id: 10, time: "18:00", title: "Agua (1 Litro Final)", desc: "Último litro para evitar levantarse de noche.", why: "Optimización." },
+            { id: 11, time: "20:00", title: "Palacio de la Memoria", desc: "Repasar lo aprendido hoy asociándolo a la casa.", why: "Frenar la curva del olvido." },
+            { id: 12, time: "21:30", title: "Rutina de Sueño", desc: "Apagar pantallas, preparar ropa del gym.", why: "Asegurar descanso profundo." }
+        ];
+
+        // --- 2. ESTADO DE LA APLICACIÓN ---
+        let appState = JSON.parse(localStorage.getItem('anderson_state')) || {
+            streak: 0,
+            completedDays: [], // Guarda { day: 1, percentage: 100, date: '2026-11-09' }
+            lastLogin: null
+        };
+
+        // --- 3. LÓGICA DE TIEMPO Y FECHA ---
+        function updateClock() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            const dateOptions = { weekday: 'long', month: 'short', day: 'numeric' };
+            
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('es-SV', timeOptions);
+            document.getElementById('current-date').textContent = now.toLocaleDateString('es-SV', dateOptions);
+        }
+
+        function calculateDay() {
+            const now = new Date();
+            // Truco: Si hoy es antes del 9 de nov, mostramos Día 0 o preparación.
+            const diffTime = now - START_DATE;
+            let dayNumber = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (dayNumber < 1) dayNumber = 0;
+            if (dayNumber > TOTAL_DAYS) dayNumber = TOTAL_DAYS;
+            
+            document.getElementById('day-counter').textContent = dayNumber;
+            return dayNumber;
+        }
+
+        // --- 4. RENDERIZADO DE INTERFAZ ---
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+            
+            dailyTasks.forEach((task, index) => {
+                const card = document.createElement('div');
+                card.className = 'glass-card habit-card p-4 flex flex-col transition-all cursor-pointer';
+                card.onclick = (e) => {
+                    if(e.target.type !== 'checkbox') {
+                        card.classList.toggle('active');
+                    }
+                };
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-gray-400 w-10">${task.time}</span>
+                            <span class="font-semibold text-sm">${task.title}</span>
+                        </div>
+                        <input type="checkbox" class="ios-checkbox task-check" data-id="${task.id}" onchange="updateProgress(event)">
+                    </div>
+                    <div class="habit-details mt-3 pt-3 border-t border-white/10 text-xs text-gray-300">
+                        <p><strong class="text-white">Qué/Cómo:</strong> ${task.desc}</p>
+                        <p class="mt-1"><strong class="text-white">Por qué:</strong> ${task.why}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = dailyTasks.length;
+            const checked = document.querySelectorAll('.task-check:checked').length;
+            document.getElementById('progress-text').textContent = `${checked}/${total}`;
+        }
+
+        function loadRandomMessage() {
+            const msg = dailyMessages[Math.floor(Math.random() * dailyMessages.length)];
+            document.getElementById('daily-message').textContent = msg;
+        }
+
+        function renderHeatmap() {
+            const container = document.getElementById('heatmap');
+            container.innerHTML = '';
+            // Renderiza últimos 14 días para que quepa en móvil
+            for(let i=0; i<14; i++) {
+                const box = document.createElement('div');
+                box.className = 'w-4 h-4 rounded-sm bg-white/10';
+                
+                // Si el día está completado en el estado, pintarlo verde
+                if (appState.completedDays.length > i) {
+                    const progress = appState.completedDays[appState.completedDays.length - 1 - i].percentage;
+                    if(progress > 80) box.classList.replace('bg-white/10', 'bg-green-500');
+                    else if(progress > 40) box.classList.replace('bg-white/10', 'bg-green-700');
+                }
+                container.appendChild(box);
+            }
+            document.getElementById('streak-counter').textContent = appState.streak;
+        }
+
+        // --- 5. LÓGICA DE FINALIZAR DÍA ---
+        function finishDay() {
+            const total = dailyTasks.length;
+            const checked = document.querySelectorAll('.task-check:checked').length;
+            const percentage = (checked / total) * 100;
+            const currentDay = calculateDay();
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            // Validar que no se finalice dos veces el mismo día
+            if(appState.lastLogin === todayStr) {
+                alert("Ya finalizaste el día de hoy. ¡Descansa!");
+                return;
+            }
+
+            // Actualizar estado
+            appState.completedDays.push({ day: currentDay, percentage, date: todayStr });
+            if (percentage > 70) {
+                appState.streak += 1;
+            } else {
+                appState.streak = 0; // Rompe racha si no cumplió suficiente
+            }
+            appState.lastLogin = todayStr;
+            
+            // Guardar en teléfono
+            localStorage.setItem('anderson_state', JSON.stringify(appState));
+
+            // Exportar a Calendario (.ics)
+            downloadICS(currentDay, percentage);
+
+            // Revisar hitos
+            checkMilestones(currentDay);
+            
+            // Refrescar UI
+            renderHeatmap();
+            
+            // Desmarcar tareas para mañana
+            document.querySelectorAll('.task-check').forEach(cb => cb.checked = false);
+            updateProgress();
+        }
+
+        // --- 6. EXPORTAR A CALENDARIO (Apple/Google) ---
+        function downloadICS(day, percentage) {
+            const now = new Date();
+            const calContent = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "BEGIN:VEVENT",
+                `DTSTART:${now.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+                `SUMMARY:Día ${day} Completado - Reto 70D`,
+                `DESCRIPTION:Anderson completó el ${percentage.toFixed(0)}% de sus metas hoy.`,
+                "END:VEVENT",
+                "END:VCALENDAR"
+            ].join("\n");
+
+            const blob = new Blob([calContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', `Anderson_Dia_${day}.ics`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- 7. CELEBRACIONES Y ANIMACIONES ---
+        function checkMilestones(day) {
+            if (day === 21) triggerCelebration("¡Hábitos Formados!", "Has superado los 21 días. Tu cerebro ya automatizó el proceso. Eres imparable.");
+            else if (day === 31) triggerCelebration("¡Primer Cambio Visible!", "Día 31. El espejo y la gente ya lo notan. El gym y la disciplina pagan.");
+            else if (day === 70) triggerCelebration("¡RETO COMPLETADO!", "Llegaste al 17 de Enero. Eres un hombre nuevo. Misión cumplida.");
+            else {
+                alert(`Día ${day} guardado. Completaste el porcentaje requerido. ¡A dormir y prepararse para mañana!`);
+            }
+        }
+
+        function triggerCelebration(title, message) {
+            // Activar Confetti
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#00f2fe', '#4facfe', '#ffffff']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#00f2fe', '#4facfe', '#ffffff']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+
+            // Mostrar Modal
+            document.getElementById('modal-subtitle').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('celebration-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('celebration-modal').style.display = 'none';
+        }
+
+        // --- 8. INICIO DE LA APLICACIÓN ---
+        window.onload = () => {
+            // Quitar pantalla de carga después de 2 segundos
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 2000);
+
+            // Inicializar datos
+            setInterval(updateClock, 1000);
+            updateClock();
+            calculateDay();
+            loadRandomMessage();
+            renderTasks();
+            renderHeatmap();
+        };
+    </script>
+</body>
+</html>
